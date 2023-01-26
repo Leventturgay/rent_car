@@ -3,6 +3,7 @@ from rest_framework.viewsets import ModelViewSet
 from .models import Car, Reservation
 from .serializers import CarSerializer
 from .permissions import IsStaffOrReadOnly
+from django.db.models import Q
 
 # Create your viefrom rews here.
 
@@ -19,3 +20,13 @@ class CarView(ModelViewSet):
             queryset = super().get_queryset().filter(availability=True)
         start = self.request.query_params.get('start')
         end = self.request.query_params.get('end')
+
+        cond1 = Q(start_date__lt=end)
+        cond2 = Q(end_date__gt=start)
+        not_available = Reservation.objects.filter(
+            cond1 & cond2
+        ).values_list('car_id', flat=True)
+
+        queryset = queryset.exclude(id__in=not_available)
+
+        return queryset
