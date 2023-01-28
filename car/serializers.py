@@ -24,3 +24,27 @@ class CarSerializer(serializers.ModelSerializer):
             fields.pop('availability')
             fields.pop('plate_number')
         return fields
+
+
+class ReservationSerializer(serializers.ModelSerializer):
+    total_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Reservation
+        fields = (
+            'id',
+            'customer',
+            'car',
+            'start_date',
+            'end_date'
+        )
+    validators = [
+        serializers.UniqueTogetherValidator(
+            queryset=Reservation.objects.all(),
+            fields=('customer', 'start_date', 'end_date'),
+            message=('you have already ...')
+        )
+    ]
+
+    def get_total_price(sel, obj):
+        return obj.car.rent_per_day * (obj.end_date - obj.start_date).days
