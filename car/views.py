@@ -1,6 +1,7 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
+from django.utils import timezone
 
 from .models import Car, Reservation
 from .serializers import CarSerializer, ReservationSerializer
@@ -68,9 +69,11 @@ class ReservationDetailView(RetrieveUpdateDestroyAPIView):
         end = serializer.validated_data.get('end_date')
         car = serializer.validated_data.get('car')
         start = instance.start_date
-        # today = datetime.today
+        today = timezone.now().date()
         if Reservation.objects.filter(car=car).exists():
-            for res in Reservation.objects.filter(car=car):
+            # a = Reservation.objects.filter(car=car, start_date__gte=today)
+            # print(len(a))
+            for res in Reservation.objects.filter(car=car, end_date__gte=today):
                 if start < res.start_date < end:
                     return Response({'message': 'Car is not available...'})
 
